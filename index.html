@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Harshpreet Cheema | Physicist</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Three.js (for potential 3D later, but we use Canvas 2D for speed here) -->
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        physics: {
+                            900: '#0B0B19', // Deep Space
+                            800: '#13132B',
+                            700: '#1C1C42',
+                            accent: '#00F0FF', // Cyan Neon
+                            secondary: '#7000FF', // Plasma Purple
+                            highlight: '#FF0055', // Laser Red
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'], // Sci-fi headers
+                        exo: ['Exo 2', 'sans-serif'], // Readable tech body
+                    },
+                    animation: {
+                        'spin-slow': 'spin 10s linear infinite',
+                        'orbit': 'orbit 15s linear infinite',
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        orbit: {
+                            '0%': { transform: 'rotate(0deg) translateX(150px) rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg) translateX(150px) rotate(-360deg)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px #00F0FF, 0 0 10px #00F0FF' },
+                            '100%': { boxShadow: '0 0 20px #00F0FF, 0 0 30px #7000FF' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles for Physics Effects */
+        body {
+            background-color: #0B0B19;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 5px rgba(0, 240, 255, 0.7), 
+                         0 0 10px rgba(0, 240, 255, 0.5);
+        }
+
+        .glass-panel {
+            background: rgba(19, 19, 43, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .hover-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .hover-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: #00F0FF;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+
+        /* Atomic Loader for Headers */
+        .atom-spinner {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: inline-block;
+        }
+        .electron {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: #00F0FF;
+            animation: spin 1s linear infinite;
+        }
+        .electron:nth-child(2) {
+            border-top-color: #7000FF;
+            animation: spin 1s linear infinite reverse;
+            transform: rotate(45deg);
+        }
+
+        /* Particle Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="font-exo selection:bg-physics-accent selection:text-physics-900">
+
+    <!-- Dynamic Background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-panel border-b-0 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer group" onclick="window.scrollTo(0,0)">
+                    <div class="relative w-10 h-10 flex items-center justify-center">
+                        <i data-lucide="atom" class="h-8 w-8 text-physics-accent animate-spin-slow group-hover:text-white transition-colors"></i>
+                        <div class="absolute inset-0 bg-physics-accent rounded-full opacity-20 blur-md group-hover:opacity-40 transition-opacity"></div>
+                    </div>
+                    <div>
+                        <span class="font-orbitron font-bold text-xl tracking-wider text-white">Dr. Cheema<span class="text-physics-accent">.Physics</span></span>
+                    </div>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#home" class="text-slate-300 hover:text-physics-accent font-medium transition-colors tracking-wide uppercase text-sm">Home</a>
+                    <a href="#about" class="text-slate-300 hover:text-physics-accent font-medium transition-colors tracking-wide uppercase text-sm">About</a>
+                    <a href="#research" class="text-slate-300 hover:text-physics-accent font-medium transition-colors tracking-wide uppercase text-sm">Research</a>
+                    <a href="#experience" class="text-slate-300 hover:text-physics-accent font-medium transition-colors tracking-wide uppercase text-sm">Experience</a>
+                    <a href="#publications" class="text-slate-300 hover:text-physics-accent font-medium transition-colors tracking-wide uppercase text-sm">Publications</a>
+                    <a href="#contact" class="px-6 py-2 bg-transparent border border-physics-accent text-physics-accent font-orbitron font-bold rounded hover:bg-physics-accent hover:text-physics-900 transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.5)]">
+                        Collaborate
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-physics-accent hover:text-white focus:outline-none">
+                        <i data-lucide="menu" class="h-8 w-8"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden glass-panel absolute w-full border-t border-physics-700">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="block px-3 py-2 text-slate-300 hover:text-physics-accent hover:bg-physics-800 rounded-md">Home</a>
+                <a href="#about" class="block px-3 py-2 text-slate-300 hover:text-physics-accent hover:bg-physics-800 rounded-md">About</a>
+                <a href="#research" class="block px-3 py-2 text-slate-300 hover:text-physics-accent hover:bg-physics-800 rounded-md">Research</a>
+                <a href="#experience" class="block px-3 py-2 text-slate-300 hover:text-physics-accent hover:bg-physics-800 rounded-md">Experience</a>
+                <a href="#publications" class="block px-3 py-2 text-slate-300 hover:text-physics-accent hover:bg-physics-800 rounded-md">Publications</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 min-h-screen flex items-center overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-12">
+                
+                <!-- Text Content -->
+                <div class="lg:w-1/2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-physics-secondary bg-physics-secondary/20 text-physics-accent text-xs font-orbitron tracking-widest mb-6 animate-pulse-fast">
+                        <span class="w-2 h-2 rounded-full bg-green-400"></span> ONLINE
+                    </div>
+                    
+                    <h1 class="font-orbitron text-5xl md:text-7xl font-black text-white leading-tight mb-6 neon-text">
+                        Dr. Harshpreet <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-physics-accent to-physics-secondary">Cheema</span>
+                    </h1>
+                    
+                    <p class="text-xl text-slate-400 mb-8 font-light max-w-lg">
+                        Assistant Professor of Physics at <span class="text-white font-semibold">Jaipur National University</span>.
+                        Exploring the quantum realm of <span class="text-physics-accent">Material Science</span> and <span class="text-physics-accent">Energy Storage</span> solutions.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#publications" class="px-8 py-4 bg-physics-accent text-physics-900 font-bold font-orbitron rounded hover:bg-white transition-all shadow-[0_0_20px_rgba(0,240,255,0.4)] flex items-center gap-2">
+                            <i data-lucide="microscope" class="h-5 w-5"></i> View Research
+                        </a>
+                        <a href="#contact" class="px-8 py-4 bg-transparent border border-physics-secondary text-white font-bold font-orbitron rounded hover:bg-physics-secondary hover:text-white transition-all flex items-center gap-2">
+                            Contact Me <i data-lucide="zap" class="h-5 w-5"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Visual Element -->
+                <div class="lg:w-1/2 relative flex justify-center">
+                    <!-- Central Core -->
+                    <div class="relative w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-physics-secondary to-physics-700 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(112,0,255,0.5)] z-10">
+                        <div class="text-center">
+                            <i data-lucide="atom" class="h-32 w-32 text-white mx-auto mb-2 opacity-80"></i>
+                            <p class="font-orbitron text-physics-accent text-lg">Ph.D. Physics</p>
+                        </div>
+                    </div>
+
+                    <!-- Orbiting Elements -->
+                    <div class="absolute inset-0 animate-spin-slow" style="animation-duration: 20s;">
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 bg-physics-900 border border-physics-accent p-3 rounded-full shadow-[0_0_15px_rgba(0,240,255,0.8)]">
+                            <i data-lucide="battery-charging" class="h-6 w-6 text-physics-accent"></i>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 animate-spin-slow" style="animation-duration: 15s; animation-direction: reverse;">
+                        <div class="absolute bottom-10 right-0 bg-physics-900 border border-physics-highlight p-3 rounded-full shadow-[0_0_15px_rgba(255,0,85,0.8)]">
+                            <i data-lucide="magnet" class="h-6 w-6 text-physics-highlight"></i>
+                        </div>
+                    </div>
+                     <div class="absolute inset-0 animate-spin-slow" style="animation-duration: 25s;">
+                        <div class="absolute top-1/2 left-0 -translate-x-6 bg-physics-900 border border-purple-500 p-3 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.8)]">
+                            <i data-lucide="layers" class="h-6 w-6 text-purple-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
+            <i data-lucide="chevrons-down" class="h-8 w-8 text-physics-accent opacity-50"></i>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 relative">
+        <div class="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-physics-800 to-transparent opacity-50 -z-10"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row gap-16 items-start">
+                <div class="md:w-1/3">
+                    <div class="glass-panel p-2 rounded-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                        <!-- Placeholder for User Image - Using a stylized physics graphic as placeholder -->
+                        <div class="aspect-[3/4] bg-physics-800 rounded-xl overflow-hidden relative flex items-center justify-center border border-physics-700">
+                             <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')] bg-cover bg-center opacity-40"></div>
+                             <div class="relative z-10 text-center p-6">
+                                <h3 class="font-orbitron text-2xl font-bold text-white mb-1">Dr. Cheema</h3>
+                                <p class="text-physics-accent text-sm">Assistant Professor</p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:w-2/3">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="h-px w-12 bg-physics-accent"></span>
+                        <h2 class="font-orbitron text-3xl md:text-4xl font-bold text-white">Academic <span class="text-physics-accent">Profile</span></h2>
+                    </div>
+                    
+                    <p class="text-lg text-slate-300 leading-relaxed mb-6">
+                        I am an Assistant Professor at Jaipur National University with a Ph.D. in Physics from Banasthali Vidyapith (2024). My research journey focuses on the intricate world of <strong class="text-physics-accent">Experimental Condensed Matter Physics</strong> and <strong class="text-physics-accent">Material Science</strong>.
+                    </p>
+                    <p class="text-lg text-slate-300 leading-relaxed mb-8">
+                        Currently, I am investigating nanocomposites of <span class="text-white font-semibold">Mn and Ni-doped Zinc Ferrite</span> with Barium Titanate to achieve multi-ferroic properties. My goal is to develop advanced electrodes for next-generation <span class="text-physics-highlight">Li-ion batteries</span> and supercapacitors, driving the future of sustainable energy.
+                    </p>
+
+                    <!-- Awards Mini Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="border border-physics-700 bg-physics-800/50 p-4 rounded-lg flex items-start gap-3">
+                            <i data-lucide="award" class="text-yellow-400 h-6 w-6 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-white">ARCI Award</h4>
+                                <p class="text-xs text-slate-400">3rd Prize: Ceramics for SOFCs Workshop (2021)</p>
+                            </div>
+                        </div>
+                        <div class="border border-physics-700 bg-physics-800/50 p-4 rounded-lg flex items-start gap-3">
+                            <i data-lucide="plane" class="text-physics-accent h-6 w-6 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-white">SERB Grant</h4>
+                                <p class="text-xs text-slate-400">Financial support for Intl. Conference in Barcelona, Spain</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Research Interests -->
+    <section id="research" class="py-24 bg-physics-900 relative overflow-hidden">
+        <!-- Background Grid -->
+        <div class="absolute inset-0" style="background-image: linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px); background-size: 50px 50px;"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="font-orbitron text-4xl font-bold text-white mb-4">Research <span class="text-physics-secondary">Spectrum</span></h2>
+                <div class="h-1 w-24 bg-gradient-to-r from-physics-accent to-physics-secondary mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="glass-panel p-8 rounded-xl hover-card group">
+                    <div class="w-14 h-14 bg-physics-800 rounded-lg flex items-center justify-center border border-physics-700 mb-6 group-hover:border-physics-accent transition-colors">
+                        <i data-lucide="component" class="h-8 w-8 text-physics-accent"></i>
+                    </div>
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-3">Nano-ferrites</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Synthesis and characterization of magnetic nanoparticles for advanced electronic applications.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-panel p-8 rounded-xl hover-card group">
+                    <div class="w-14 h-14 bg-physics-800 rounded-lg flex items-center justify-center border border-physics-700 mb-6 group-hover:border-physics-highlight transition-colors">
+                        <i data-lucide="battery" class="h-8 w-8 text-physics-highlight"></i>
+                    </div>
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-3">Energy Storage</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Developing high-efficiency electrodes for Li-ion batteries and next-gen Supercapacitors.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-panel p-8 rounded-xl hover-card group">
+                    <div class="w-14 h-14 bg-physics-800 rounded-lg flex items-center justify-center border border-physics-700 mb-6 group-hover:border-physics-secondary transition-colors">
+                        <i data-lucide="zap" class="h-8 w-8 text-physics-secondary"></i>
+                    </div>
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-3">Solid Oxide Fuel Cells</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Investigating ceramic materials (SOFCs) for clean and efficient power generation.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="glass-panel p-8 rounded-xl hover-card group">
+                    <div class="w-14 h-14 bg-physics-800 rounded-lg flex items-center justify-center border border-physics-700 mb-6 group-hover:border-green-400 transition-colors">
+                        <i data-lucide="layers" class="h-8 w-8 text-green-400"></i>
+                    </div>
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-3">Perovskite Oxides</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Structural and electrical study of Perovskites for high-k dielectric material applications.</p>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="glass-panel p-8 rounded-xl hover-card group">
+                    <div class="w-14 h-14 bg-physics-800 rounded-lg flex items-center justify-center border border-physics-700 mb-6 group-hover:border-orange-400 transition-colors">
+                        <i data-lucide="microscope" class="h-8 w-8 text-orange-400"></i>
+                    </div>
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-3">Material Characterization</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Expertise in XRD, SEM, and impedance spectroscopy to analyze material properties.</p>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="glass-panel p-8 rounded-xl hover-card group">
+                    <div class="w-14 h-14 bg-physics-800 rounded-lg flex items-center justify-center border border-physics-700 mb-6 group-hover:border-pink-500 transition-colors">
+                        <i data-lucide="rotate-3d" class="h-8 w-8 text-pink-500"></i>
+                    </div>
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-3">Condensed Matter</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Experimental research into the physical properties of condensed phases of matter.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section id="experience" class="py-24 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="font-orbitron text-3xl font-bold text-white mb-12 text-center">Trajectory <span class="text-physics-highlight">& Timeline</span></h2>
+            
+            <div class="relative border-l-2 border-physics-700 ml-6 md:ml-12 space-y-12">
+                
+                <!-- Item 1 -->
+                <div class="relative pl-8 md:pl-12 group">
+                    <div class="absolute -left-[9px] top-2 h-5 w-5 rounded-full bg-physics-900 border-2 border-physics-accent group-hover:bg-physics-accent transition-colors shadow-[0_0_10px_rgba(0,240,255,0.5)]"></div>
+                    <div class="glass-panel p-6 rounded-lg border-l-4 border-l-physics-accent">
+                        <span class="text-physics-accent font-orbitron text-xs font-bold tracking-wider">Jan 2025 - Present</span>
+                        <h3 class="text-xl font-bold text-white mt-1">Assistant Professor</h3>
+                        <p class="text-slate-300 font-semibold">Jaipur National University, Rajasthan</p>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="relative pl-8 md:pl-12 group">
+                    <div class="absolute -left-[9px] top-2 h-5 w-5 rounded-full bg-physics-900 border-2 border-physics-secondary group-hover:bg-physics-secondary transition-colors"></div>
+                    <div class="glass-panel p-6 rounded-lg border-l-4 border-l-physics-secondary">
+                        <span class="text-physics-secondary font-orbitron text-xs font-bold tracking-wider">Jul 2024 - Jan 2025</span>
+                        <h3 class="text-xl font-bold text-white mt-1">Assistant Professor</h3>
+                        <p class="text-slate-300 font-semibold">Mewar University, Chittorgarh</p>
+                    </div>
+                </div>
+
+                <!-- Item 3 -->
+                <div class="relative pl-8 md:pl-12 group">
+                    <div class="absolute -left-[9px] top-2 h-5 w-5 rounded-full bg-physics-900 border-2 border-white group-hover:bg-white transition-colors"></div>
+                    <div class="glass-panel p-6 rounded-lg border-l-4 border-l-white">
+                        <span class="text-slate-400 font-orbitron text-xs font-bold tracking-wider">2020 - 2024</span>
+                        <h3 class="text-xl font-bold text-white mt-1">Ph.D. Research Scholar</h3>
+                        <p class="text-slate-300 font-semibold">Banasthali Vidyapith</p>
+                        <p class="text-slate-400 text-sm mt-2 italic">"Studies on the Physical Properties of Modified ZnFe2O4 and BaTiO3 nanocomposite"</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Publications Section -->
+    <section id="publications" class="py-24 bg-physics-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+                <div>
+                    <h2 class="font-orbitron text-3xl md:text-4xl font-bold text-white">Selected <span class="text-physics-accent">Publications</span></h2>
+                    <p class="text-slate-400 mt-2">Highlights from 10+ published works</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <button class="px-4 py-2 border border-physics-700 rounded text-slate-300 hover:border-physics-accent hover:text-physics-accent transition-colors">View All on Google Scholar</button>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Paper 1 -->
+                <div class="glass-panel p-6 rounded-lg border-l-4 border-l-physics-highlight hover:bg-physics-800 transition-colors cursor-pointer">
+                    <div class="flex flex-col md:flex-row gap-4 justify-between">
+                        <div>
+                            <span class="bg-physics-highlight/20 text-physics-highlight px-2 py-1 rounded text-xs font-bold mb-2 inline-block">2021</span>
+                            <h3 class="text-lg font-bold text-white hover:text-physics-highlight transition-colors">Structural, optical and electrical properties of Mn-doped ZnFe2O4 synthesized using sol-gel method</h3>
+                            <p class="text-slate-400 text-sm mt-1">Journal of Material Science: Materials in Electronics</p>
+                        </div>
+                        <div class="flex items-center">
+                             <i data-lucide="external-link" class="text-slate-500 hover:text-white transition-colors"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paper 2 -->
+                <div class="glass-panel p-6 rounded-lg border-l-4 border-l-physics-accent hover:bg-physics-800 transition-colors cursor-pointer">
+                    <div class="flex flex-col md:flex-row gap-4 justify-between">
+                        <div>
+                            <span class="bg-physics-accent/20 text-physics-accent px-2 py-1 rounded text-xs font-bold mb-2 inline-block">2020</span>
+                            <h3 class="text-lg font-bold text-white hover:text-physics-accent transition-colors">Synthesis and physical properties of nanopowder and electrical properties of bulk samples of ZnFe2-xNixO4</h3>
+                            <p class="text-slate-400 text-sm mt-1">Advanced Powder Technology</p>
+                        </div>
+                        <div class="flex items-center">
+                             <i data-lucide="external-link" class="text-slate-500 hover:text-white transition-colors"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paper 3 -->
+                <div class="glass-panel p-6 rounded-lg border-l-4 border-l-physics-secondary hover:bg-physics-800 transition-colors cursor-pointer">
+                    <div class="flex flex-col md:flex-row gap-4 justify-between">
+                        <div>
+                            <span class="bg-physics-secondary/20 text-physics-secondary px-2 py-1 rounded text-xs font-bold mb-2 inline-block">2025</span>
+                            <h3 class="text-lg font-bold text-white hover:text-physics-secondary transition-colors">Ferrite and Perovskite-based Nanocomposites as High k-dielectric Materials</h3>
+                            <p class="text-slate-400 text-sm mt-1">CRC Taylor and Francis (Book Chapter)</p>
+                        </div>
+                        <div class="flex items-center">
+                             <i data-lucide="book-open" class="text-slate-500 hover:text-white transition-colors"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer / Contact -->
+    <footer id="contact" class="border-t border-physics-700 bg-physics-900 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+                <div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <i data-lucide="atom" class="h-8 w-8 text-physics-accent"></i>
+                        <span class="font-orbitron font-bold text-xl text-white">Dr. Cheema</span>
+                    </div>
+                    <p class="text-slate-400 mb-6 max-w-sm">
+                        Open for research collaborations in Material Science and Energy Storage technologies. Let's innovate the future together.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-physics-800 flex items-center justify-center text-white hover:bg-physics-accent hover:text-physics-900 transition-all">
+                            <i data-lucide="linkedin" class="h-5 w-5"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-physics-800 flex items-center justify-center text-white hover:bg-physics-secondary hover:text-white transition-all">
+                            <i data-lucide="twitter" class="h-5 w-5"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-8 rounded-xl">
+                    <h3 class="font-orbitron text-xl font-bold text-white mb-6">Establish Connection</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-4 text-slate-300">
+                            <div class="w-8 h-8 rounded bg-physics-800 flex items-center justify-center text-physics-accent">
+                                <i data-lucide="mail" class="h-4 w-4"></i>
+                            </div>
+                            <a href="mailto:harshpreetcheema26@gmail.com" class="hover:text-physics-accent transition-colors">harshpreetcheema26@gmail.com</a>
+                        </li>
+                        <li class="flex items-center gap-4 text-slate-300">
+                            <div class="w-8 h-8 rounded bg-physics-800 flex items-center justify-center text-physics-highlight">
+                                <i data-lucide="phone" class="h-4 w-4"></i>
+                            </div>
+                            <span>+91 9306411019</span>
+                        </li>
+                        <li class="flex items-center gap-4 text-slate-300">
+                            <div class="w-8 h-8 rounded bg-physics-800 flex items-center justify-center text-physics-secondary">
+                                <i data-lucide="map-pin" class="h-4 w-4"></i>
+                            </div>
+                            <span>Jaipur National University, Jaipur, India</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center border-t border-physics-800 pt-8">
+                <p class="text-slate-500 text-sm">© 2025 Dr. Harshpreet Cheema. Engineered with <i data-lucide="heart" class="inline h-3 w-3 text-physics-highlight"></i> and Physics.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Mobile Menu
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // Particle Animation System
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+                this.color = Math.random() > 0.5 ? 'rgba(0, 240, 255, ' : 'rgba(112, 0, 255, ';
+                this.alpha = Math.random() * 0.5 + 0.1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color + this.alpha + ')';
+                ctx.fill();
+            }
+        }
+
+        // Create Particles
+        for (let i = 0; i < 70; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw connections
+            particles.forEach((p1, index) => {
+                p1.update();
+                p1.draw();
+
+                for (let j = index + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(100, 100, 255, ${0.1 - distance/1500})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
